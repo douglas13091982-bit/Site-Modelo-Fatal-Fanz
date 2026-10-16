@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fatal Fans - Painel Administrativo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #1a1a1a; --bg-darker: #0f0f0f; --bg-card: #252525; --bg-sidebar: #161616;
+      --text: #ebebeb; --text-muted: #a0a0a0;
+      --pink: #e85a7a; --pink-dark: #c94a66; --green: #22c55e; --red: #ef4444; --amber: #f59e0b; --blue: #3b82f6;
+      --border: #333; --radius: 12px; --radius-sm: 8px; --radius-full: 9999px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Figtree', system-ui, sans-serif; background: var(--bg-darker); color: var(--text); min-height: 100vh; }
+
+    /* ===== Login ===== */
+    .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .login-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 36px; width: 100%; max-width: 400px; }
+    .login-box h1 { font-size: 1.4rem; margin-bottom: 4px; }
+    .login-box p { color: var(--text-muted); font-size: .9rem; margin-bottom: 22px; }
+    .login-box input { width: 100%; background: var(--bg-darker); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; color: var(--text); font-family: inherit; font-size: .95rem; outline: none; margin-bottom: 12px; }
+    .login-box input:focus { border-color: var(--pink); }
+    .login-logo { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 1.3rem; margin-bottom: 18px; }
+    .logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, var(--pink), #ff6b8a); border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; color: #fff; transform: rotate(-8deg); }
+    .login-error { color: #f87171; font-size: .85rem; margin-bottom: 10px; display: none; }
+
+    /* ===== Layout admin ===== */
+    .admin-layout { display: flex; min-height: 100vh; }
+    aside { width: 240px; background: var(--bg-sidebar); border-right: 1px solid var(--border); padding: 20px 14px; position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; flex-shrink: 0; }
+    aside .logo { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 1.15rem; color: var(--text); text-decoration: none; margin-bottom: 26px; padding: 0 8px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: var(--radius-sm); color: var(--text-muted); cursor: pointer; font-weight: 600; font-size: .92rem; transition: .15s; border: none; background: none; width: 100%; text-align: left; font-family: inherit; }
+    .nav-item:hover { background: rgba(255,255,255,.05); color: var(--text); }
+    .nav-item.active { background: var(--pink); color: #fff; }
+    .nav-badge { margin-left: auto; background: var(--red); color: #fff; font-size: .7rem; font-weight: 800; border-radius: var(--radius-full); padding: 2px 8px; }
+    .nav-item.active .nav-badge { background: rgba(255,255,255,.25); }
+    aside .spacer { flex: 1; }
+    main { flex: 1; padding: 26px 30px 80px; min-width: 0; }
+    .view { display: none; }
+    .view.active { display: block; animation: fade .25s ease; }
+    @keyframes fade { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: none; } }
+    .view-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 20px; }
+
+    .btn { padding: 9px 18px; border-radius: var(--radius-full); font-size: .88rem; font-weight: 600; cursor: pointer; border: none; transition: .2s; font-family: inherit; }
+    .btn-primary { background: var(--pink); color: #fff; }
+    .btn-primary:hover { background: var(--pink-dark); }
+    .btn-ghost { background: transparent; color: var(--text); border: 1px solid rgba(255,255,255,.15); text-decoration: none; display: inline-block; }
+    .btn-sm { padding: 5px 12px; font-size: .78rem; border-radius: var(--radius-sm); }
+    .btn-green { background: rgba(34,197,94,.15); color: #4ade80; }
+    .btn-green:hover { background: rgba(34,197,94,.3); }
+    .btn-red { background: rgba(239,68,68,.15); color: #f87171; }
+    .btn-red:hover { background: rgba(239,68,68,.3); }
+    .btn-amber { background: rgba(245,158,11,.15); color: var(--amber); }
+
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 26px; }
+    .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
+    .stat-label { color: var(--text-muted); font-size: .82rem; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+    .stat-value { font-size: 1.8rem; font-weight: 800; margin-top: 6px; }
+    .stat-sub { font-size: .75rem; color: var(--text-muted); margin-top: 2px; }
+    .stat-pink .stat-value { color: var(--pink); }
+    .stat-green .stat-value { color: #4ade80; }
+    .stat-amber .stat-value { color: var(--amber); }
+    .stat-blue .stat-value { color: #60a5fa; }
+
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
+    .card h3 { font-size: 1.02rem; margin-bottom: 14px; }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+    th { text-align: left; color: var(--text-muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,.05); vertical-align: middle; }
+    tr:hover td { background: rgba(255,255,255,.02); }
+    .thumb { width: 52px; height: 52px; border-radius: 8px; object-fit: cover; background: #111; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; overflow: hidden; }
+    .thumb img, .thumb video { width: 100%; height: 100%; object-fit: cover; }
+    .badge { display: inline-block; font-size: .72rem; font-weight: 700; padding: 3px 10px; border-radius: var(--radius-full); }
+    .b-pendente { background: rgba(245,158,11,.15); color: var(--amber); }
+    .b-aprovado { background: rgba(34,197,94,.15); color: #4ade80; }
+    .b-recusado { background: rgba(239,68,68,.15); color: #f87171; }
+    .b-bloqueada { background: rgba(239,68,68,.15); color: #f87171; }
+    .b-ativa { background: rgba(34,197,94,.15); color: #4ade80; }
+    .b-exclusivo { background: rgba(212,168,75,.15); color: var(--amber); }
+    .b-gratis { background: rgba(59,130,246,.15); color: #60a5fa; }
+    .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .table-scroll { overflow-x: auto; }
+
+    /* Filters bar */
+    .toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+    .toolbar input, .toolbar select { background: var(--bg-darker); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 9px 12px; color: var(--text); font-family: inherit; font-size: .88rem; outline: none; }
+    .chip { padding: 7px 16px; border-radius: var(--radius-full); background: var(--bg-darker); border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; font-weight: 600; font-size: .82rem; font-family: inherit; }
+    .chip.active { background: var(--pink); color: #fff; border-color: transparent; }
+
+    /* Settings */
+    .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-name { font-weight: 600; font-size: .92rem; }
+    .setting-desc { color: var(--text-muted); font-size: .8rem; }
+    .switch { position: relative; width: 46px; height: 26px; background: var(--border); border-radius: var(--radius-full); cursor: pointer; transition: .2s; flex-shrink: 0; border: none; }
+    .switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: #fff; border-radius: 50%; transition: .2s; }
+    .switch.on { background: var(--pink); }
+    .switch.on::after { left: 23px; }
+    .setting-input { width: 120px; background: var(--bg-darker); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; color: var(--text); font-family: inherit; }
+
+    /* Modal preview */
+    .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.75); display: none; align-items: center; justify-content: center; z-index: 500; padding: 20px; }
+    .modal-bg.open { display: flex; }
+    .modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); max-width: 640px; width: 100%; max-height: 85vh; overflow: auto; padding: 22px; }
+    .modal img, .modal video { width: 100%; border-radius: var(--radius-sm); margin-bottom: 14px; }
+
+    .toast { position: fixed; bottom: 24px; right: 24px; background: var(--pink); color: #fff; padding: 12px 22px; border-radius: var(--radius-full); font-weight: 600; opacity: 0; transform: translateY(20px); transition: .3s; z-index: 999; pointer-events: none; box-shadow: 0 8px 30px rgba(232,90,122,.4); }
+    .toast.show { opacity: 1; transform: none; }
+
+    .empty { text-align: center; color: var(--text-muted); padding: 40px 20px; }
+
+    @media (max-width: 860px) {
+      aside { width: 70px; padding: 16px 8px; }
+      aside .logo span.txt, .nav-item .txt { display: none; }
+      main { padding: 18px 14px 60px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== LOGIN ===== -->
+  <div class="login-wrap" id="loginScreen">
+    <div class="login-box">
+      <div class="login-logo"><span class="logo-icon">✕</span> fatalfans <small style="color:var(--text-muted);font-weight:600">ADMIN</small></div>
+      <h1>Painel Administrativo</h1>
+      <p>Acesso restrito à equipe de moderação.</p>
+      <div class="login-error" id="loginError">❌ Senha incorreta.</div>
+      <input type="text" id="loginUser" placeholder="Usuário (padrão: admin)" value="admin">
+      <input type="password" id="loginPass" placeholder="Senha (padrão: admin123)">
+      <button class="btn btn-primary" style="width:100%;padding:12px" onclick="doLogin()">Entrar no painel</button>
+      <br><br>
+      <a href="index.html" class="btn btn-ghost" style="display:block;text-align:center">← Voltar ao site</a>
+    </div>
+  </div>
+
+  <!-- ===== PAINEL ===== -->
+  <div class="admin-layout" id="adminApp" style="display:none">
+    <aside>
+      <a class="logo" href="index.html"><span class="logo-icon">✕</span> <span class="txt">fatal<b>admin</b></span></a>
+      <button class="nav-item active" data-view="dashboard">📊 <span class="txt">Dashboard</span></button>
+      <button class="nav-item" data-view="conteudo">🗂️ <span class="txt">Conteúdo</span> <span class="nav-badge" id="badgePendentes" style="display:none"></span></button>
+      <button class="nav-item" data-view="criadoras">👩‍🎤 <span class="txt">Criadoras</span></button>
+      <button class="nav-item" data-view="denuncias">🚩 <span class="txt">Denúncias</span> <span class="nav-badge" id="badgeDenuncias" style="display:none"></span></button>
+      <button class="nav-item" data-view="config">⚙️ <span class="txt">Configurações</span></button>
+      <div class="spacer"></div>
+      <button class="nav-item" onclick="location.href='subir-conteudo.html'">⬆ <span class="txt">Área das criadoras</span></button>
+      <button class="nav-item" onclick="doLogout()">🚪 <span class="txt">Sair</span></button>
+    </aside>
+
+    <main>
+      <!-- DASHBOARD -->
+      <section class="view active" id="view-dashboard">
+        <h2 class="view-title">Dashboard</h2>
+        <div class="stats-grid" id="statsGrid"></div>
+        <div class="card">
+          <h3>Últimos envios</h3>
+          <div class="table-scroll"><table id="tblRecentes"></table></div>
+        </div>
+      </section>
+
+      <!-- CONTEÚDO / MODERAÇÃO -->
+      <section class="view" id="view-conteudo">
+        <h2 class="view-title">Moderação de Conteúdo</h2>
+        <div class="toolbar">
+          <button class="chip active" data-f="todos">Todos</button>
+          <button class="chip" data-f="pendente">⏳ Pendentes</button>
+          <button class="chip" data-f="aprovado">✅ Aprovados</button>
+          <button class="chip" data-f="recusado">❌ Recusados</button>
+          <select id="filtroTipo"><option value="">Foto + Vídeo</option><option value="foto">Só fotos</option><option value="video">Só vídeos</option></select>
+          <input type="text" id="buscaConteudo" placeholder="Buscar por título ou @" style="flex:1;min-width:160px">
+        </div>
+        <div class="card">
+          <div class="table-scroll"><table id="tblConteudo"></table></div>
+        </div>
+      </section>
+
+      <!-- CRIADORAS -->
+      <section class="view" id="view-criadoras">
+        <h2 class="view-title">Gerenciar Criadoras</h2>
+        <div class="card">
+          <h3>Cadastrar nova criadora</h3>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">
+            <input id="nNome" placeholder="Nome artístico" style="background:var(--bg-darker);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:inherit">
+            <input id="nUser" placeholder="@usuário" style="background:var(--bg-darker);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:inherit">
+            <input id="nEmail" placeholder="E-mail" style="background:var(--bg-darker);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:inherit">
+            <input id="nFoto" placeholder="URL foto de perfil" style="background:var(--bg-darker);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:inherit">
+            <button class="btn btn-primary" onclick="addCriadora()">+ Adicionar</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="table-scroll"><table id="tblCriadoras"></table></div>
+        </div>
+      </section>
+
+      <!-- DENÚNCIAS -->
+      <section class="view" id="view-denuncias">
+        <h2 class="view-title">Denúncias</h2>
+        <div class="card">
+          <div class="table-scroll"><table id="tblDenuncias"></table></div>
+        </div>
+      </section>
+
+      <!-- CONFIGURAÇÕES -->
+      <section class="view" id="view-config">
+        <h2 class="view-title">Configurações do Site</h2>
+        <div class="card" id="settingsCard"></div>
+        <div class="card">
+          <h3>Zona de perigo</h3>
+          <p style="color:var(--text-muted);font-size:.85rem;margin-bottom:12px">Isto apaga todos os dados de demonstração (envios, contas, denúncias) deste navegador.</p>
+          <button class="btn btn-red" onclick="limparTudo()">🗑 Limpar todos os dados</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal preview -->
+  <div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()">
+    <div class="modal" id="modalContent"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="js/db.js"></script>
+  <script>
+    /* ---------- Autenticação ---------- */
+    function doLogin() {
+      const u = document.getElementById('loginUser').value.trim();
+      const p = document.getElementById('loginPass').value;
+      const s = FF.getSettings();
+      if (u === 'admin' && p === s.adminPassword) {
+        FF.setSession({ tipo: 'admin', nome: 'Admin' });
+        showApp();
+      } else {
+        document.getElementById('loginError').style.display = 'block';
+      }
+    }
+    document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+    function doLogout() { FF.setSession(null); location.reload(); }
+
+    function showApp() {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('adminApp').style.display = 'flex';
+      renderAll();
+    }
+
+    // Sessão admin já ativa?
+    const sess = FF.getSession();
+    if (sess && sess.tipo === 'admin') showApp();
+
+    /* ---------- Navegação lateral ---------- */
+    let currentFilter = 'todos';
+    document.querySelectorAll('.nav-item[data-view]').forEach(item => {
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        item.classList.add('active');
+        document.getElementById('view-' + item.dataset.view).classList.add('active');
+        renderAll();
+      });
+    });
+
+    document.querySelectorAll('.chip[data-f]').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.chip[data-f]').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        currentFilter = chip.dataset.f;
+        renderConteudo();
+      });
+    });
+    document.getElementById('filtroTipo').addEventListener('change', renderConteudo);
+    document.getElementById('buscaConteudo').addEventListener('input', renderConteudo);
+
+    function toast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2600);
+    }
+
+    function renderAll() { renderStats(); renderRecentes(); renderConteudo(); renderCriadoras(); renderDenuncias(); renderSettings(); renderBadges(); }
+
+    function renderBadges() {
+      const st = FF.getStats();
+      const bp = document.getElementById('badgePendentes');
+      const bd = document.getElementById('badgeDenuncias');
+      bp.style.display = st.pending ? 'inline-block' : 'none'; bp.textContent = st.pending;
+      bd.style.display = st.openReports ? 'inline-block' : 'none'; bd.textContent = st.openReports;
+    }
+
+    /* ---------- Dashboard ---------- */
+    function renderStats() {
+      const st = FF.getStats();
+      document.getElementById('statsGrid').innerHTML = `
+        <div class="stat-card stat-pink"><div class="stat-label">👩‍🎤 Criadoras</div><div class="stat-value">${st.users}</div><div class="stat-sub">${st.blockedUsers} bloqueada(s)</div></div>
+        <div class="stat-card stat-blue"><div class="stat-label">🗂️ Publicações</div><div class="stat-value">${st.uploads}</div><div class="stat-sub">${st.photos} fotos · ${st.videos} vídeos</div></div>
+        <div class="stat-card stat-amber"><div class="stat-label">⏳ Pendentes</div><div class="stat-value">${st.pending}</div><div class="stat-sub">aguardando moderação</div></div>
+        <div class="stat-card stat-green"><div class="stat-label">✅ Aprovados</div><div class="stat-value">${st.approved}</div><div class="stat-sub">${st.rejected} recusado(s)</div></div>
+        <div class="stat-card"><div class="stat-label">👁 Visualizações</div><div class="stat-value">${st.totalViews.toLocaleString('pt-BR')}</div></div>
+        <div class="stat-card"><div class="stat-label">❤ Curtidas</div><div class="stat-value">${st.totalLikes.toLocaleString('pt-BR')}</div></div>`;
+    }
+
+    function mediaCell(u) {
+      if (u.thumb) {
+        return u.type === 'video'
+          ? `<div class="thumb"><video src="${u.thumb}" muted preload="metadata"></video></div>`
+          : `<div class="thumb"><img src="${u.thumb}" alt=""></div>`;
+      }
+      return `<div class="thumb">${u.type === 'video' ? '🎬' : '🖼️'}</div>`;
+    }
+
+    function rowUpload(u, withActions) {
+      return `<tr>
+        <td>${mediaCell(u)}</td>
+        <td><b>${FF.escapeHtml(u.titulo)}</b><br><small style="color:var(--text-muted)">@${FF.escapeHtml(u.autor)} · ${FF.formatBytes(u.size)}</small></td>
+        <td>${u.type === 'video' ? '🎬 Vídeo' : '🖼 Foto'}</td>
+        <td><span class="badge b-${u.acesso || 'gratis'}">${(u.acesso || 'gratis') === 'exclusivo' ? 'Exclusivo' : 'Grátis'}</span></td>
+        <td><span class="badge b-${u.status}">${u.status.toUpperCase()}</span></td>
+        <td>👁 ${u.views} · ❤ ${u.likes}</td>
+        <td><small style="color:var(--text-muted)">${FF.formatDate(u.createdAt)}</small></td>
+        <td class="actions">
+          <button class="btn btn-sm btn-ghost" onclick="preview('${u.id}')"> 👁 Ver</button>
+          ${withActions ? `
+          ${u.status !== 'aprovado' ? `<button class="btn btn-sm btn-green" onclick="moderar('${u.id}','aprovado')">✓ Aprovar</button>` : ''}
+          ${u.status !== 'recusado' ? `<button class="btn btn-sm btn-red" onclick="moderar('${u.id}','recusado')">✕ Recusar</button>` : ''}
+          <button class="btn btn-sm btn-red" onclick="remover('${u.id}')">🗑</button>` : ''}
+        </td>
+      </tr>`;
+    }
+
+    function renderRecentes() {
+      const list = FF.getUploads().slice(0, 6);
+      const tbl = document.getElementById('tblRecentes');
+      if (!list.length) { tbl.innerHTML = '<tr><td class="empty">Nenhum envio ainda. As criadoras publicam em <a href="subir-conteudo.html" style="color:var(--pink)">subir-conteudo.html</a>.</td></tr>'; return; }
+      tbl.innerHTML = headRow() + list.map(u => rowUpload(u, true)).join('');
+    }
+
+    function headRow() {
+      return `<tr><th>Mídia</th><th>Título / Autora</th><th>Tipo</th><th>Acesso</th><th>Status</th><th>Engajamento</th><th>Enviado em</th><th>Ações</th></tr>`;
+    }
+
+    /* ---------- Moderação ---------- */
+    function renderConteudo() {
+      const busca = document.getElementById('buscaConteudo').value.toLowerCase();
+      const tipo = document.getElementById('filtroTipo').value;
+      let list = FF.getUploads();
+      if (currentFilter !== 'todos') list = list.filter(u => u.status === currentFilter);
+      if (tipo) list = list.filter(u => u.type === tipo);
+      if (busca) list = list.filter(u => (u.titulo + ' ' + u.autor).toLowerCase().includes(busca));
+      const tbl = document.getElementById('tblConteudo');
+      if (!list.length) { tbl.innerHTML = '<tr><td class="empty">Nada por aqui. 🧹</td></tr>'; return; }
+      tbl.innerHTML = headRow() + list.map(u => rowUpload(u, true)).join('');
+    }
+
+    function moderar(id, status) {
+      FF.updateUpload(id, { status });
+      toast(status === 'aprovado' ? '✅ Conteúdo aprovado e publicado!' : '❌ Conteúdo recusado.');
+      renderAll();
+    }
+
+    function remover(id) {
+      if (!confirm('Excluir permanentemente este conteúdo?')) return;
+      FF.deleteUpload(id);
+      toast('🗑 Conteúdo excluído.');
+      renderAll();
+    }
+
+    function preview(id) {
+      const u = FF.getUploads().find(x => x.id === id);
+      if (!u) return;
+      document.getElementById('modalContent').innerHTML = `
+        <h3 style="margin-bottom:12px">${FF.escapeHtml(u.titulo)} <span class="badge b-${u.status}">${u.status.toUpperCase()}</span></h3>
+        ${u.thumb
+          ? (u.type === 'video' ? `<video src="${u.thumb}" controls autoplay></video>` : `<img src="${u.thumb}">`)
+          : `<div class="empty">${u.type === 'video' ? '🎬' : '🖼️'} Prévia não disponível (arquivo grande — em produção viria do servidor).</div>`}
+        <p style="color:var(--text-muted);font-size:.88rem;margin-bottom:14px">@${FF.escapeHtml(u.autor)} · ${FF.formatBytes(u.size)} · ${FF.formatDate(u.createdAt)}<br>${FF.escapeHtml(u.descricao || '')}</p>
+        <div class="actions">
+          <button class="btn btn-sm btn-green" onclick="moderar('${u.id}','aprovado');closeModal()">✓ Aprovar</button>
+          <button class="btn btn-sm btn-red" onclick="moderar('${u.id}','recusado');closeModal()">✕ Recusar</button>
+          <button class="btn btn-sm btn-ghost" onclick="closeModal()">Fechar</button>
+        </div>`;
+      document.getElementById('modalBg').classList.add('open');
+    }
+    function closeModal() { document.getElementById('modalBg').classList.remove('open'); }
+
+    /* ---------- Criadoras ---------- */
+    function addCriadora() {
+      const nome = document.getElementById('nNome').value.trim();
+      const usuario = document.getElementById('nUser').value.trim().replace(/^@/, '');
+      if (!nome || !usuario) { toast('⚠️ Preencha nome e @usuário'); return; }
+      FF.addUser({ nome, usuario, email: document.getElementById('nEmail').value.trim(), foto: document.getElementById('nFoto').value.trim(), categoria: 'Mulheres', bio: '' });
+      ['nNome','nUser','nEmail','nFoto'].forEach(i => document.getElementById(i).value = '');
+      toast('✅ Criadora cadastrada!');
+      renderAll();
+    }
+
+    function renderCriadoras() {
+      const users = FF.getUsers();
+      const tbl = document.getElementById('tblCriadoras');
+      if (!users.length) { tbl.innerHTML = '<tr><td class="empty">Nenhuma criadora cadastrada. Cadastre acima ou aguarde registros pela área pública.</td></tr>'; return; }
+      tbl.innerHTML = `<tr><th></th><th>Nome</th><th>@Usuário</th><th>E-mail</th><th>Categoria</th><th>Publicações</th><th>Status</th><th>Ações</th></tr>` +
+        users.map(u => {
+          const count = FF.getUploads().filter(x => x.autor.toLowerCase() === u.usuario.toLowerCase()).length;
+          return `<tr>
+            <td>${u.foto ? `<div class="thumb"><img src="${FF.escapeHtml(u.foto)}"></div>` : '<div class="thumb">👩‍🎤</div>'}</td>
+            <td><b>${FF.escapeHtml(u.nome)}</b></td>
+            <td>@${FF.escapeHtml(u.usuario)}</td>
+            <td><small>${FF.escapeHtml(u.email || '—')}</small></td>
+            <td>${FF.escapeHtml(u.categoria || 'Mulheres')}</td>
+            <td>${count}</td>
+            <td><span class="badge ${u.blocked ? 'b-bloqueada' : 'b-ativa'}">${u.blocked ? 'BLOQUEADA' : 'ATIVA'}</span></td>
+            <td class="actions">
+              <button class="btn btn-sm ${u.blocked ? 'btn-green' : 'btn-amber'}" onclick="toggleBlock('${u.id}')">${u.blocked ? '🔓 Desbloquear' : '🔒 Bloquear'}</button>
+              <button class="btn btn-sm btn-red" onclick="excluirCriadora('${u.id}')">🗑</button>
+            </td>
+          </tr>`;
+        }).join('');
+    }
+
+    function toggleBlock(id) {
+      const u = FF.getUsers().find(x => x.id === id);
+      FF.updateUser(id, { blocked: !u.blocked });
+      toast(u.blocked ? '🔒 Criadora bloqueada.' : '🔓 Criadora desbloqueada.');
+      renderAll();
+    }
+
+    function excluirCriadora(id) {
+      if (!confirm('Excluir esta criadora? Os envios dela permanecem na fila de conteúdo.')) return;
+      FF.deleteUser(id);
+      toast('🗑 Criadora excluída.');
+      renderAll();
+    }
+
+    /* ---------- Denúncias ---------- */
+    function renderDenuncias() {
+      const reports = FF.getReports();
+      const tbl = document.getElementById('tblDenuncias');
+      if (!reports.length) { tbl.innerHTML = '<tr><td class="empty">Nenhuma denúncia. 🎉<br><small>(No site público, cada card de conteúdo pode ter um botão "denunciar" que chama FF.addReport.)</small></td></tr>'; return; }
+      tbl.innerHTML = `<tr><th>Motivo</th><th>Alvo</th><th>Denunciante</th><th>Data</th><th>Status</th><th>Ações</th></tr>` +
+        reports.map(r => `<tr>
+          <td><b>${FF.escapeHtml(r.motivo)}</b><br><small style="color:var(--text-muted)">${FF.escapeHtml(r.detalhe || '')}</small></td>
+          <td>${FF.escapeHtml(r.alvo)}</td>
+          <td>${FF.escapeHtml(r.de || 'Anônimo')}</td>
+          <td><small>${FF.formatDate(r.createdAt)}</small></td>
+          <td><span class="badge ${r.resolved ? 'b-aprovado' : 'b-pendente'}">${r.resolved ? 'RESOLVIDA' : 'ABERTA'}</span></td>
+          <td class="actions">${r.resolved ? '' : `<button class="btn btn-sm btn-green" onclick="resolverDenuncia('${r.id}')">✓ Resolver</button>`}</td>
+        </tr>`).join('');
+    }
+
+    function resolverDenuncia(id) { FF.resolveReport(id); toast('✅ Denúncia resolvida.'); renderAll(); }
+
+    /* ---------- Configurações ---------- */
+    function renderSettings() {
+      const s = FF.getSettings();
+      document.getElementById('settingsCard').innerHTML = `
+        <h3>Preferências gerais</h3>
+        <div class="setting-row">
+          <div><div class="setting-name">Nome do site</div><div class="setting-desc">Exibido no cabeçalho público</div></div>
+          <input class="setting-input" id="setSiteName" value="${FF.escapeHtml(s.siteName)}" onchange="saveSet({siteName:this.value})">
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-name">Modo manutenção</div><div class="setting-desc">Exibe aviso no site público</div></div>
+          <button class="switch ${s.maintenance ? 'on' : ''}" onclick="toggleSwitch(this,'maintenance')"></button>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-name">Aprovação automática</div><div class="setting-desc">Novos envios são publicados sem moderação</div></div>
+          <button class="switch ${s.autoApprove ? 'on' : ''}" onclick="toggleSwitch(this,'autoApprove')"></button>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-name">Permitir fotos</div></div>
+          <button class="switch ${s.allowPhotos ? 'on' : ''}" onclick="toggleSwitch(this,'allowPhotos')"></button>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-name">Permitir vídeos</div></div>
+          <button class="switch ${s.allowVideos ? 'on' : ''}" onclick="toggleSwitch(this,'allowVideos')"></button>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-name">Tamanho máx. de upload (MB)</div></div>
+          <input class="setting-input" type="number" min="1" value="${s.maxUploadMB}" onchange="saveSet({maxUploadMB:Number(this.value)})">
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-name">Senha do painel</div><div class="setting-desc">Padrão: admin123 — troque em produção!</div></div>
+          <input class="setting-input" type="password" id="setPass" placeholder="Nova senha" onchange="saveSet({adminPassword:this.value||'admin123'})">
+        </div>`;
+    }
+
+    function saveSet(patch) { FF.saveSettings(patch); toast('⚙️ Configuração salva.'); renderSettings(); }
+    function toggleSwitch(el, key) { const s = FF.getSettings(); const patch = {}; patch[key] = !s[key]; FF.saveSettings(patch); renderSettings(); }
+
+    function limparTudo() {
+      if (!confirm('Apagar TODOS os dados de demonstração deste navegador?')) return;
+      ['ff_uploads','ff_users','ff_reports','ff_settings'].forEach(k => localStorage.removeItem(k));
+      toast('🗑 Dados limpos.');
+      renderAll();
+    }
+  </script>
+</body>
+</html>

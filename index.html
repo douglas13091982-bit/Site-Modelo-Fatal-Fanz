@@ -807,10 +807,16 @@
       fatalfans
     </a>
     <div class="header-actions">
-      <button class="btn btn-ghost">Entrar</button>
-      <button class="btn btn-primary">Criar conta</button>
+      <a href="subir-conteudo.html" class="btn btn-ghost">📤 Subir conteúdo</a>
+      <a href="admin.html" class="btn btn-ghost">Admin</a>
+      <button class="btn btn-primary" onclick="location.href='subir-conteudo.html'">Criar conta</button>
     </div>
   </header>
+
+  <!-- Aviso de manutenção (controlado pelo painel admin) -->
+  <div id="maintenanceBanner" style="display:none;background:#f59e0b;color:#111;text-align:center;padding:10px;font-weight:700">
+    🚧 Estamos em manutenção. O site voltará em breve!
+  </div>
 
   <!-- Hero Carousel -->
   <section class="hero">
@@ -1409,7 +1415,29 @@
 
   <button class="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
 
+  <script src="js/db.js"></script>
   <script>
+    // Banner de manutenção (ativado pelo painel admin) + nome do site
+    (function () {
+      const s = FF.getSettings();
+      if (s.maintenance) document.getElementById('maintenanceBanner').style.display = 'block';
+    })();
+
+    // Feed dinâmico: conteúdo aprovado pelas criadoras aparece no carrossel
+    (function injectCriadoraSlides() {
+      const aprovados = FF.getUploads().filter(u => u.status === 'aprovado' && u.thumb && u.type === 'foto');
+      const track = document.getElementById('heroTrack');
+      aprovados.slice(0, 5).forEach(u => {
+        const slide = document.createElement('div');
+        slide.className = 'hero-slide';
+        slide.innerHTML = `
+          <div class="hero-bg" style="background-image:url('${u.thumb}')"></div>
+          <div class="hero-card"><img src="${u.thumb}" alt="${FF.escapeHtml(u.titulo)}"></div>
+          <div class="hero-info"><div class="label">Novo de</div><div class="name">@${FF.escapeHtml(u.autor)}</div></div>`;
+        track.appendChild(slide);
+      });
+    })();
+
     // Hero carousel
     let heroIndex = 0;
     const track = document.getElementById('heroTrack');

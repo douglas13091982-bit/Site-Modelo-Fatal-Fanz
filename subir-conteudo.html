@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fatal Fans - Área das Criadoras | Subir Fotos e Vídeos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #1a1a1a;
+      --bg-darker: #0f0f0f;
+      --bg-card: #252525;
+      --bg-card-hover: #2e2e2e;
+      --text: #ebebeb;
+      --text-muted: #a0a0a0;
+      --pink: #e85a7a;
+      --pink-dark: #c94a66;
+      --gold: #d4a84b;
+      --green: #22c55e;
+      --red: #ef4444;
+      --amber: #f59e0b;
+      --border: #333;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --radius-full: 9999px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Figtree', system-ui, sans-serif;
+      background: var(--bg-darker);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    header {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 24px;
+      background: rgba(15,15,15,.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,.05);
+    }
+    .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text); font-weight: 700; font-size: 1.3rem; }
+    .logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, var(--pink), #ff6b8a); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #fff; transform: rotate(-8deg); }
+    .header-actions { display: flex; gap: 10px; align-items: center; }
+    .btn { padding: 9px 18px; border-radius: var(--radius-full); font-size: .9rem; font-weight: 600; cursor: pointer; border: none; transition: .2s; font-family: inherit; }
+    .btn-ghost { background: transparent; color: var(--text); border: 1px solid rgba(255,255,255,.15); text-decoration: none; display: inline-block; }
+    .btn-ghost:hover { background: rgba(255,255,255,.08); }
+    .btn-primary { background: var(--pink); color: #fff; }
+    .btn-primary:hover { background: var(--pink-dark); }
+    .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+
+    .page { max-width: 980px; margin: 0 auto; padding: 28px 20px 80px; }
+    .page-title { font-size: 1.6rem; font-weight: 800; margin-bottom: 4px; }
+    .page-sub { color: var(--text-muted); margin-bottom: 24px; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+    .tab { padding: 10px 20px; border-radius: var(--radius-full); background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; font-weight: 600; font-family: inherit; font-size: .92rem; transition: .2s; }
+    .tab.active { background: var(--pink); color: #fff; border-color: transparent; }
+
+    .panel { display: none; }
+    .panel.active { display: block; animation: fade .25s ease; }
+    @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+    /* Card genérico */
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; margin-bottom: 20px; }
+    .card h3 { font-size: 1.05rem; margin-bottom: 14px; }
+
+    /* Formulário cadastro */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    label { font-size: .85rem; color: var(--text-muted); font-weight: 600; }
+    input[type=text], input[type=email], input[type=password], input[type=url], input[type=number], textarea, select {
+      background: var(--bg-darker); border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 11px 14px; color: var(--text); font-family: inherit; font-size: .95rem; outline: none; transition: border .2s;
+    }
+    input:focus, textarea:focus, select:focus { border-color: var(--pink); }
+    textarea { resize: vertical; min-height: 80px; }
+
+    /* Dropzone */
+    .dropzone {
+      border: 2px dashed var(--border); border-radius: var(--radius);
+      padding: 44px 20px; text-align: center; cursor: pointer; transition: .2s;
+      background: rgba(232,90,122,.03);
+    }
+    .dropzone:hover, .dropzone.dragover { border-color: var(--pink); background: rgba(232,90,122,.08); }
+    .dropzone-icon { font-size: 2.6rem; margin-bottom: 10px; }
+    .dropzone p { color: var(--text-muted); }
+    .dropzone strong { color: var(--pink); }
+    .file-list { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .file-item { display: flex; align-items: center; gap: 12px; background: var(--bg-darker); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; }
+    .file-thumb { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; background: #111; flex-shrink: 0; }
+    .file-meta { flex: 1; min-width: 0; }
+    .file-name { font-size: .9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .file-info { font-size: .78rem; color: var(--text-muted); }
+    .file-remove { background: none; border: none; color: var(--red); cursor: pointer; font-size: 1.1rem; padding: 4px 8px; }
+    .progress { height: 5px; background: var(--border); border-radius: 4px; margin-top: 6px; overflow: hidden; }
+    .progress-bar { height: 100%; width: 0; background: var(--pink); transition: width .2s; }
+
+    .upload-options { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+    .hint { font-size: .8rem; color: var(--text-muted); margin-top: 10px; }
+    .success-msg { background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.4); color: #4ade80; padding: 12px 16px; border-radius: var(--radius-sm); margin-bottom: 16px; display: none; }
+
+    /* Galeria "Meu conteúdo" */
+    .content-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px; }
+    .content-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .content-card .media { width: 100%; aspect-ratio: 4/3; object-fit: cover; background: #111; display: block; }
+    .content-body { padding: 12px 14px; }
+    .content-title { font-weight: 700; font-size: .92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .status-badge { display: inline-block; font-size: .72rem; font-weight: 700; padding: 3px 10px; border-radius: var(--radius-full); margin-top: 6px; }
+    .status-pendente { background: rgba(245,158,11,.15); color: var(--amber); }
+    .status-aprovado { background: rgba(34,197,94,.15); color: #4ade80; }
+    .status-recusado { background: rgba(239,68,68,.15); color: #f87171; }
+    .content-stats { font-size: .78rem; color: var(--text-muted); margin-top: 6px; }
+    .empty { text-align: center; color: var(--text-muted); padding: 50px 20px; }
+    .empty-icon { font-size: 2.4rem; margin-bottom: 10px; }
+
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+      background: var(--pink); color: #fff; padding: 12px 24px; border-radius: var(--radius-full);
+      font-weight: 600; opacity: 0; transition: .3s; z-index: 999; pointer-events: none;
+      box-shadow: 0 8px 30px rgba(232,90,122,.4);
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 640px) {
+      .form-grid, .upload-options { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="index.html" class="logo"><span class="logo-icon">✕</span> fatalfans</a>
+    <div class="header-actions">
+      <a href="index.html" class="btn btn-ghost">← Voltar ao site</a>
+      <a href="admin.html" class="btn btn-primary">Painel Admin</a>
+    </div>
+  </header>
+
+  <div class="page">
+    <h1 class="page-title">Área das Criadoras 💜</h1>
+    <p class="page-sub">Cadastre-se como criadora e publique suas fotos e vídeos na plataforma.</p>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="cadastro">1. Cadastro</button>
+      <button class="tab" data-tab="upload">2. Subir Fotos/Vídeos</button>
+      <button class="tab" data-tab="meu">Meu Conteúdo</button>
+    </div>
+
+    <!-- ===== Cadastro ===== -->
+    <section class="panel active" id="panel-cadastro">
+      <div class="card">
+        <h3>Criar conta de criadora</h3>
+        <div class="success-msg" id="cadastroSuccess">✅ Conta criada com sucesso! Agora vá para <b>Subir Fotos/Vídeos</b>.</div>
+        <form id="formCadastro">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nome artístico *</label>
+              <input type="text" id="crNome" placeholder="Ex.: Victoria Matosa" required>
+            </div>
+            <div class="form-group">
+              <label>@usuário *</label>
+              <input type="text" id="crUser" placeholder="Ex.: victoriamatosa" required>
+            </div>
+            <div class="form-group">
+              <label>E-mail *</label>
+              <input type="email" id="crEmail" placeholder="voce@email.com" required>
+            </div>
+            <div class="form-group">
+              <label>Senha *</label>
+              <input type="password" id="crSenha" placeholder="Mínimo 6 caracteres" minlength="6" required>
+            </div>
+            <div class="form-group">
+              <label>Foto de perfil (URL da imagem)</label>
+              <input type="url" id="crFoto" placeholder="https://...">
+            </div>
+            <div class="form-group">
+              <label>Categoria</label>
+              <select id="crCat">
+                <option>Mulheres</option>
+                <option>Casais</option>
+                <option>Homens</option>
+                <option>Trans</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label>Bio (aparece no seu perfil público)</label>
+              <textarea id="crBio" placeholder="Conte um pouco sobre você e seu conteúdo..."></textarea>
+            </div>
+            <div class="form-group full">
+              <label style="display:flex;align-items:center;gap:8px;color:var(--text)">
+                <input type="checkbox" id="crTermos" required style="width:auto">
+                Declaro que sou maior de 18 anos e tenho direitos sobre o conteúdo que vou publicar.
+              </label>
+            </div>
+          </div>
+          <br>
+          <button type="submit" class="btn btn-primary" style="padding:12px 30px">Criar minha conta</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===== Upload ===== -->
+    <section class="panel" id="panel-upload">
+      <div class="card">
+        <h3>Publicar novo conteúdo</h3>
+        <div class="success-msg" id="uploadSuccess">✅ Conteúdo enviado! Ele aparecerá como <b>pendente</b> até a aprovação da equipe.</div>
+        <div class="form-grid" style="margin-bottom:16px">
+          <div class="form-group">
+            <label>Seu nome / @usuário *</label>
+            <input type="text" id="upAutor" placeholder="Ex.: victoria.matosa">
+          </div>
+          <div class="form-group">
+            <label>Título do conteúdo *</label>
+            <input type="text" id="upTitulo" placeholder="Ex.: Ensaio novo na praia 🌊">
+          </div>
+          <div class="form-group full">
+            <label>Descrição (opcional)</label>
+            <textarea id="upDesc" placeholder="Descreva o conteúdo para seus fãs..."></textarea>
+          </div>
+        </div>
+
+        <div class="dropzone" id="dropzone">
+          <div class="dropzone-icon">📸</div>
+          <p>Arraste <strong>fotos ou vídeos</strong> aqui, ou clique para selecionar</p>
+          <p class="hint">Formatos aceitos: JPG, PNG, WEBP, GIF, MP4, MOV, WEBM — máx. 100 MB por arquivo</p>
+          <input type="file" id="fileInput" multiple accept="image/*,video/*" hidden>
+        </div>
+
+        <div class="file-list" id="fileList"></div>
+
+        <div class="upload-options">
+          <div class="form-group">
+            <label>Acesso</label>
+            <select id="upAccess">
+              <option value="gratis">Grátis (todos veem)</option>
+              <option value="exclusivo">Exclusivo (somente assinantes)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Preço avulso (R$, opcional)</label>
+            <input type="number" id="upPreco" min="0" step="0.01" placeholder="Ex.: 19.90">
+          </div>
+        </div>
+        <br>
+        <button class="btn btn-primary" id="btnEnviar" style="padding:12px 30px" disabled>⬆ Enviar para aprovação</button>
+      </div>
+    </section>
+
+    <!-- ===== Meu conteúdo ===== -->
+    <section class="panel" id="panel-meu">
+      <div class="card">
+        <h3>Meu conteúdo publicado</h3>
+        <div class="form-group" style="max-width:340px;margin-bottom:16px">
+          <label>Filtrar pelo seu @nome ou nome artístico</label>
+          <input type="text" id="filtroEu" placeholder="Digite seu @usuário ou nome">
+        </div>
+        <div id="minhaGaleria" class="content-grid"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="js/db.js"></script>
+  <script>
+    // ---------- Tabs ----------
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+        if (tab.dataset.tab === 'meu') renderMinhaGaleria();
+      });
+    });
+
+    function toast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    // ---------- Cadastro ----------
+    document.getElementById('formCadastro').addEventListener('submit', e => {
+      e.preventDefault();
+      const user = {
+        nome: document.getElementById('crNome').value.trim(),
+        usuario: document.getElementById('crUser').value.trim().replace(/^@/, ''),
+        email: document.getElementById('crEmail').value.trim(),
+        senha: document.getElementById('crSenha').value,
+        foto: document.getElementById('crFoto').value.trim(),
+        categoria: document.getElementById('crCat').value,
+        bio: document.getElementById('crBio').value.trim()
+      };
+      if (FF.getUsers().some(u => u.usuario.toLowerCase() === user.usuario.toLowerCase())) {
+        toast('⚠️ Este @usuário já existe!');
+        return;
+      }
+      FF.addUser(user);
+      FF.setSession({ tipo: 'criadora', nome: user.nome, usuario: user.usuario });
+      document.getElementById('upAutor').value = user.usuario;
+      document.getElementById('cadastroSuccess').style.display = 'block';
+      toast('✅ Conta criada, ' + user.nome + '!');
+      e.target.reset();
+    });
+
+    // ---------- Upload ----------
+    const dz = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const fileList = document.getElementById('fileList');
+    const btnEnviar = document.getElementById('btnEnviar');
+    let pendingFiles = []; // { file, previewUrl, type, size, progress }
+
+    dz.addEventListener('click', () => fileInput.click());
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+    dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+    dz.addEventListener('drop', e => {
+      e.preventDefault();
+      dz.classList.remove('dragover');
+      handleFiles(e.dataTransfer.files);
+    });
+    fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+    function handleFiles(files) {
+      for (const f of files) {
+        const isImg = f.type.startsWith('image/');
+        const isVid = f.type.startsWith('video/');
+        if (!isImg && !isVid) { toast('⚠️ Arquivo ignorado: ' + f.name); continue; }
+        if (f.size > 100 * 1024 * 1024) { toast('⚠️ ' + f.name + ' excede 100 MB'); continue; }
+        const entry = { file: f, type: isImg ? 'foto' : 'video', progress: 0, previewUrl: '' };
+        // Prévia local (limitada para não estourar o armazenamento)
+        if (isImg && f.size <= 3 * 1024 * 1024) {
+          entry.previewUrl = URL.createObjectURL(f);
+          const reader = new FileReader();
+          reader.onload = () => { entry.dataUrl = reader.result; };
+          reader.readAsDataURL(f);
+        } else if (isVid && f.size <= 3 * 1024 * 1024) {
+          entry.previewUrl = URL.createObjectURL(f);
+        }
+        pendingFiles.push(entry);
+      }
+      renderFileList();
+    }
+
+    function renderFileList() {
+      fileList.innerHTML = '';
+      pendingFiles.forEach((entry, i) => {
+        const div = document.createElement('div');
+        div.className = 'file-item';
+        const icon = entry.type === 'video' ? '🎬' : '🖼️';
+        div.innerHTML = `
+          ${entry.previewUrl
+            ? (entry.type === 'video'
+                ? `<video class="file-thumb" src="${entry.previewUrl}" muted></video>`
+                : `<img class="file-thumb" src="${entry.previewUrl}">`)
+            : `<div class="file-thumb" style="display:flex;align-items:center;justify-content:center;font-size:1.4rem">${icon}</div>`}
+          <div class="file-meta">
+            <div class="file-name">${FF.escapeHtml(entry.file.name)}</div>
+            <div class="file-info">${entry.type === 'video' ? 'Vídeo' : 'Foto'} · ${FF.formatBytes(entry.file.size)} · ${icon}</div>
+            <div class="progress"><div class="progress-bar" style="width:${entry.progress}%"></div></div>
+          </div>
+          <button class="file-remove" title="Remover" data-i="${i}">✕</button>`;
+        fileList.appendChild(div);
+      });
+      fileList.querySelectorAll('.file-remove').forEach(b => {
+        b.addEventListener('click', () => {
+          pendingFiles.splice(Number(b.dataset.i), 1);
+          renderFileList();
+        });
+      });
+      btnEnviar.disabled = pendingFiles.length === 0;
+    }
+
+    btnEnviar.addEventListener('click', () => {
+      const autor = document.getElementById('upAutor').value.trim();
+      const titulo = document.getElementById('upTitulo').value.trim();
+      if (!autor) { toast('⚠️ Informe seu @usuário ou nome'); return; }
+      if (!titulo) { toast('⚠️ Informe um título'); return; }
+      btnEnviar.disabled = true;
+      btnEnviar.textContent = 'Enviando...';
+
+      // Simulação de barra de progresso (em produção: upload real com XMLHttpRequest/fetch + FormData)
+      let pct = 0;
+      const int = setInterval(() => {
+        pct = Math.min(pct + 8 + Math.random() * 12, 100);
+        pendingFiles.forEach(e => e.progress = pct);
+        fileList.querySelectorAll('.progress-bar').forEach(bar => bar.style.width = pct + '%');
+        if (pct >= 100) {
+          clearInterval(int);
+          finishUpload(autor, titulo);
+        }
+      }, 120);
+    });
+
+    function finishUpload(autor, titulo) {
+      const desc = document.getElementById('upDesc').value.trim();
+      const acesso = document.getElementById('upAccess').value;
+      const preco = document.getElementById('upPreco').value;
+      pendingFiles.forEach(entry => {
+        FF.addUpload({
+          autor,
+          titulo: titulo || entry.file.name,
+          descricao: desc,
+          type: entry.type,
+          fileName: entry.file.name,
+          size: entry.file.size,
+          thumb: entry.dataUrl || '', // prévia base64 quando pequena; em produção: URL do servidor
+          acesso,
+          preco: preco ? Number(preco) : null,
+          status: FF.getSettings().autoApprove ? 'aprovado' : 'pendente'
+        });
+      });
+      toast('✅ ' + pendingFiles.length + ' arquivo(s) enviado(s) com sucesso!');
+      document.getElementById('uploadSuccess').style.display = 'block';
+      pendingFiles = [];
+      renderFileList();
+      document.getElementById('upTitulo').value = '';
+      document.getElementById('upDesc').value = '';
+      document.getElementById('upPreco').value = '';
+      btnEnviar.textContent = '⬆ Enviar para aprovação';
+      fileInput.value = '';
+    }
+
+    // ---------- Minha galeria ----------
+    document.getElementById('filtroEu').addEventListener('input', renderMinhaGaleria);
+
+    function renderMinhaGaleria() {
+      const filtro = document.getElementById('filtroEu').value.trim().toLowerCase().replace(/^@/, '');
+      const session = FF.getSession();
+      const eff = filtro || (session && session.tipo === 'criadora' ? session.usuario.toLowerCase() : '');
+      if (eff && !filtro && !document.getElementById('filtroEu').value) {
+        document.getElementById('filtroEu').value = session.usuario;
+      }
+      const items = FF.getUploads().filter(u =>
+        !eff || u.autor.toLowerCase().includes(eff) || String(u.autor).toLowerCase() === eff
+      );
+      const box = document.getElementById('minhaGaleria');
+      if (!items.length) {
+        box.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🗂️</div>Você ainda não publicou nada aqui.<br>Envie fotos e vídeos na aba <b>Subir Fotos/Vídeos</b>.</div>';
+        return;
+      }
+      box.innerHTML = items.map(u => `
+        <div class="content-card">
+          ${u.thumb
+            ? (u.type === 'video'
+                ? `<video class="media" src="${u.thumb}" controls preload="metadata"></video>`
+                : `<img class="media" src="${u.thumb}" alt="">`)
+            : `<div class="media" style="display:flex;align-items:center;justify-content:center;font-size:2.5rem">${u.type === 'video' ? '🎬' : '🖼️'}</div>`}
+          <div class="content-body">
+            <div class="content-title">${FF.escapeHtml(u.titulo)}</div>
+            <span class="status-badge status-${u.status}">${u.status.toUpperCase()}</span>
+            <div class="content-stats">👁 ${u.views} · ❤ ${u.likes} · ${FF.formatDate(u.createdAt)}</div>
+          </div>
+        </div>`).join('');
+    }
+
+    // Pré-preencher autor se houver sessão
+    const sess = FF.getSession();
+    if (sess && sess.tipo === 'criadora') {
+      document.getElementById('upAutor').value = sess.usuario;
+    }
+  </script>
+</body>
+</html>
